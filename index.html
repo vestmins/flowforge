@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>FlowForge — код у блок-схеми</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#f4f3fb;--sf:#fff;--tx:#14122a;--mut:#6b6885;--bd:#dedaf2;--ac:#7c5cff;--ac2:#14b8d4;--glow:rgba(124,92,255,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0914;--sf:#141228;--tx:#ecebf8;--mut:#8f8bb0;--bd:#2a2650;--glow:rgba(124,92,255,.25)}}
+:root[data-theme="dark"]{--bg:#0a0914;--sf:#141228;--tx:#ecebf8;--mut:#8f8bb0;--bd:#2a2650;--glow:rgba(124,92,255,.25)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 500px at 10% -10%,var(--glow),transparent),radial-gradient(700px 400px at 100% 0,rgba(20,184,212,.14),transparent),var(--bg);color:var(--tx);font:15px/1.5 Inter,system-ui,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;padding:22px 20px 8px}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.5px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo small{display:block;font-size:12px;font-weight:400;color:var(--mut);-webkit-text-fill-color:var(--mut)}
+nav{display:flex;gap:4px;padding:4px;background:var(--sf);border:1px solid var(--bd);border-radius:14px}
+nav button{border:0;background:none;color:var(--mut);font:600 14px Inter,sans-serif;padding:9px 18px;border-radius:10px;cursor:pointer}
+nav button.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;box-shadow:0 4px 18px var(--glow)}
+main{max-width:1200px;margin:0 auto;padding:12px 20px 40px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:16px;box-shadow:0 10px 40px -20px var(--glow)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+h2{margin:0 auto 0 0;font-size:15px}
+textarea{width:100%;height:420px;resize:vertical;background:transparent;color:var(--tx);border:1px solid var(--bd);border-radius:12px;padding:12px;font:13px/1.55 'JetBrains Mono',ui-monospace,monospace;tab-size:4;outline:none}
+textarea:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--glow)}
+.btn{border:1px solid var(--bd);background:var(--sf);color:var(--tx);font:600 13px Inter,sans-serif;padding:8px 14px;border-radius:10px;cursor:pointer}
+.btn:hover{border-color:var(--ac)}
+.pri{border:0;color:#fff;background:linear-gradient(135deg,var(--ac),var(--ac2))}
+select{background:var(--sf);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:8px 10px;font:600 13px Inter,sans-serif;outline:none}
+.canvas{background:#0b0a1a;background-image:radial-gradient(#27234a 1px,transparent 1px);background-size:22px 22px;border-radius:14px;height:520px;overflow:auto;border:1px solid var(--bd)}
+.canvas svg{display:block;margin:0 auto}
+.err{color:#ff6b8a;font-size:13px;min-height:18px}
+.drop{border:2px dashed var(--bd);border-radius:18px;padding:44px 20px;text-align:center;color:var(--mut);cursor:pointer;transition:.2s}
+.drop.hot,.drop:hover{border-color:var(--ac);background:var(--glow);color:var(--tx)}
+.drop b{display:block;font-size:18px;color:var(--tx);margin-bottom:4px}
+.hide{display:none!important}
+.out{margin-top:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.out img{max-width:220px;max-height:160px;border-radius:10px;border:1px solid var(--bd)}
+.mut{color:var(--mut);font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips span{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);color:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">FlowForge<small>код → блок-схема · конвертер файлів</small></div>
+  <nav><button class="on" data-t="flow">Блок-схеми</button><button data-t="conv">Конвертер</button></nav>
+</header>
+<main>
+<section id="flow">
+  <div class="grid">
+    <div class="card">
+      <div class="row"><h2>Код</h2>
+        <select id="ex"><option value="0">Python: приклад</option><option value="1">JavaScript: приклад</option></select>
+        <button class="btn pri" id="go">Побудувати</button></div>
+      <textarea id="code" spellcheck="false"></textarea>
+      <div class="err" id="err"></div>
+      <div class="mut">Підтримка: if / else if / else, while, for, def / function, return, print / console.log / input. Відступи (Python) або фігурні дужки (JS, C, Java…).</div>
+    </div>
+    <div class="card">
+      <div class="row"><h2>Схема</h2>
+        <button class="btn" id="zo">−</button><button class="btn" id="zi">+</button>
+        <button class="btn" id="svgd">SVG</button><button class="btn" id="pngd">PNG</button></div>
+      <div class="canvas" id="cv"></div>
+      <div class="chips" style="margin-top:10px"><span>◖ початок/кінець</span><span>▭ дія</span><span>▱ ввід/вивід</span><span>◇ умова/цикл</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="conv" class="hide">
+  <div class="card" style="max-width:760px;margin:0 auto">
+    <div class="row"><h2>Конвертер файлів</h2><span class="mut">усе працює в браузері, файли нікуди не вантажаться</span></div>
+    <div class="drop" id="drop"><b>Перетягни файл сюди</b>або клікни, щоб вибрати<br><span class="mut">зображення (PNG, JPG, WEBP, SVG) · JSON ↔ CSV · будь-який файл → Base64</span></div>
+    <input type="file" id="file" class="hide">
+    <div id="cp" class="hide" style="margin-top:14px">
+      <div class="row"><b id="fn"></b><span class="mut" id="fi"></span></div>
+      <div class="row"><span class="mut">Конвертувати в</span><select id="to"></select><button class="btn pri" id="cb">Конвертувати</button></div>
+      <div class="err" id="cerr"></div>
+      <div class="out hide" id="out"><img id="pv" class="hide" alt=""><button class="btn pri" id="sv">Зберегти файл</button><span class="mut" id="so"></span></div>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const EX=[`def check(n):
+    print("Введіть число")
+    x = input()
+    if x > 10:
+        print("Велике")
+    elif x > 5:
+        print("Середнє")
+    else:
+        print("Мале")
+    while n > 0:
+        n = n - 1
+        total = total + n
+    return total`,`function sum(arr) {
+  let s = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] % 2 === 0) {
+      s += arr[i];
+    } else {
+      console.log("непарне");
+    }
+  }
+  return s;
+}`];
+// tabs
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));$('#flow').classList.toggle('hide',b.dataset.t!=='flow');$('#conv').classList.toggle('hide',b.dataset.t!=='conv')});
+
+// ---------- parser ----------
+function lines(code){
+  const raw=code.split('\n').map(l=>l.replace(/\/\/.*$/,'').replace(/(^|\s)#.*$/,'').replace(/\s+$/,'')).filter(l=>l.trim()),L=[];
+  if(!/[{}]/.test(code)){const st=[0];raw.forEach(l=>{const n=l.match(/^\s*/)[0].replace(/\t/g,'    ').length;while(st[st.length-1]>n)st.pop();if(st[st.length-1]<n)st.push(n);L.push({d:st.length-1,s:l.trim()})})}
+  else{let d=0;raw.forEach(l=>{let s=l.trim();while(s[0]==='}'){d=Math.max(0,d-1);s=s.slice(1).trim()}if(!s)return;const o=/\{$/.test(s);L.push({d,s:s.replace(/\s*\{$/,'')});if(o)d++})}
+  L.forEach(l=>l.s=l.s.replace(/;$/,'').replace(/:$/,'').trim());return L;
+}
+const cond=c=>c.replace(/^\((.*)\)$/,'$1').trim();
+function block(L,st,d){const o=[];while(st.i<L.length&&L[st.i].d>=d){const s=L[st.i++].s;o.push(node(L,st,d,s))}return o.flat()}
+function ifn(L,st,d,c){
+  const n={t:'if',c:cond(c),a:block(L,st,d+1),b:[]},p=L[st.i];
+  if(p&&p.d===d){let m;
+    if(m=p.s.match(/^(?:else\s+if|elif)\b\s*(.*)$/)){st.i++;n.b=[ifn(L,st,d,m[1])]}
+    else if(/^else\b/.test(p.s)){st.i++;n.b=block(L,st,d+1)}}
+  return n}
+function node(L,st,d,s){let m;
+  if(m=s.match(/^if\b\s*(.*)$/))return ifn(L,st,d,m[1]);
+  if(/^(while|for|foreach)\b/.test(s))return{t:'loop',x:s.replace(/^(for|while|foreach)\s*\((.*)\)$/,'$1 $2'),body:block(L,st,d+1)};
+  if(/^(def|function|func|fn)\b/.test(s))return[{t:'term',x:s.replace(/^(def|function|func|fn)\s+/,'')},...block(L,st,d+1)];
+  if(/^return\b/.test(s))return{t:'term',x:s};
+  if(/^(print|console\.log|input|printf|scanf|cout|cin|echo|System\.out)/.test(s))return{t:'io',x:s};
+  return{t:'st',x:s}}
+
+// ---------- layout ----------
+const NW=210,NH=46,DW=230,DH=76,G=34;
+const cut=(s,n)=>s.length>n?s.slice(0,n-1)+'…':s;
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function ms(l){let w=NW,h=0;l.forEach((n,i)=>{const m=mn(n);w=Math.max(w,m.w);h+=m.h+(i?G:0)});return{w,h}}
+function mn(n){
+  if(n.t==='if'){const a=ms(n.a),b=ms(n.b);n.W=Math.max(DW,a.w)+Math.max(DW,b.w)-60;n.A=a;n.B=b;return n.m={w:n.W,h:DH+G+Math.max(a.h,b.h)+G}}
+  if(n.t==='loop'){const b=ms(n.body);n.B=b;n.W=Math.max(DW,b.w)+130;return n.m={w:n.W,h:DH+G+b.h+40}}
+  return n.m={w:NW,h:NH}}
+let S='';
+const ar=(x,y1,y2)=>S+=`<path d="M${x} ${y1}V${y2}" class="e" marker-end="url(#ah)"/>`;
+const ln=p=>S+=`<path d="${p}" class="e"/>`;
+const lb=(x,y,t)=>S+=`<text x="${x}" y="${y}" class="lb">${t}</text>`;
+function seq(l,cx,y){l.forEach((n,i)=>{const m=n.m;draw(n,cx,y);y+=m.h;if(i<l.length-1){ar(cx,y,y+G);y+=G}})}
+function draw(n,cx,y){
+  const t=esc(n.x||n.c||''),f=esc(cut(n.x||n.c||'',n.t==='if'||n.t==='loop'?22:26));
+  if(n.t==='if'||n.t==='loop'){
+    const my=y+DH/2;
+    S+=`<g><title>${t}</title><polygon points="${cx},${y} ${cx+DW/2},${my} ${cx},${y+DH} ${cx-DW/2},${my}" fill="url(#gD)" class="sh"/><text x="${cx}" y="${my+4}" class="tx" style="font-size:11px">${f}</text></g>`;
+    if(n.t==='if'){
+      const W=n.W,l=cx-W/2,cA=l+Math.max(DW,n.A.w)/2,cB=cx+W/2-Math.max(DW,n.B.w)/2,top=y+DH+G,yM=y+n.m.h,eA=top+n.A.h,eB=top+n.B.h;
+      lb(cx-DW/2-26,my-6,'Так');lb(cx+DW/2+8,my-6,'Ні');
+      ln(`M${cx-DW/2} ${my}H${cA}`);n.a.length?ar(cA,my,top):ln(`M${cA} ${my}V${yM}`);
+      ln(`M${cx+DW/2} ${my}H${cB}`);n.b.length?ar(cB,my,top):ln(`M${cB} ${my}V${yM}`);
+      seq(n.a,cA,top);seq(n.b,cB,top);
+      if(n.a.length)ln(`M${cA} ${eA}V${yM}H${cx}`);if(n.b.length)ln(`M${cB} ${eB}V${yM}H${cx}`);
+      if(!n.a.length&&!n.b.length)ln(`M${cx} ${y+DH}V${yM}`);
+      ln(`M${cA} ${yM}H${cB}`);
+    }else{
+      const top=y+DH+G,yb=top+n.B.h,yE=y+n.m.h,L=cx-n.W/2+22,R=cx+n.W/2-22;
+      lb(cx+8,y+DH+18,'Так');lb(cx+DW/2+6,my-6,'Ні');
+      n.body.length?ar(cx,y+DH,top):ln(`M${cx} ${y+DH}V${top}`);seq(n.body,cx,top);
+      ln(`M${cx} ${yb}V${yb+20}H${L}V${my}H${cx-DW/2}`);
+      ln(`M${cx+DW/2} ${my}H${R}V${yE}H${cx}`);
+    }
+    return}
+  let sh;
+  if(n.t==='term')sh=`<rect x="${cx-NW/2}" y="${y}" width="${NW}" height="${NH}" rx="23" fill="url(#gT)" class="sh"/>`;
+  else if(n.t==='io')sh=`<polygon points="${cx-NW/2+16},${y} ${cx+NW/2},${y} ${cx+NW/2-16},${y+NH} ${cx-NW/2},${y+NH}" fill="url(#gI)" class="sh"/>`;
+  else sh=`<rect x="${cx-NW/2}" y="${y}" width="${NW}" height="${NH}" rx="10" fill="url(#gS)" class="sh"/>`;
+  S+=`<g><title>${t}</title>${sh}<text x="${cx}" y="${y+NH/2+4}" class="tx">${f}</text></g>`}
+
+let SVG='',Z=1,SW=0,SH=0;
+function build(){
+  $('#err').textContent='';
+  try{
+    const L=lines($('#code').value);if(!L.length){$('#cv').innerHTML='';SVG='';return}
+    const list=[{t:'term',x:'Початок'},...block(L,{i:0},0),{t:'term',x:'Кінець'}],M=ms(list);
+    SW=M.w+80;SH=M.h+80;S='';
+    seq(list,SW/2,40);
+    SVG=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SW} ${SH}" width="${SW}" height="${SH}"><defs>
+<linearGradient id="gT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#c04bff"/></linearGradient>
+<linearGradient id="gS" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#14b8d4"/></linearGradient>
+<linearGradient id="gI" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d9488"/><stop offset="1" stop-color="#34d399"/></linearGradient>
+<linearGradient id="gD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f59e0b"/><stop offset="1" stop-color="#ef4476"/></linearGradient>
+<filter id="gl" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#7c5cff" flood-opacity=".45"/></filter>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9b8cff"/></marker>
+<style>.e{fill:none;stroke:#9b8cff;stroke-width:1.8;stroke-linejoin:round}.sh{stroke:rgba(255,255,255,.35);stroke-width:1;filter:url(#gl)}.tx{fill:#fff;font:600 12px 'JetBrains Mono',ui-monospace,monospace;text-anchor:middle}.lb{fill:#c9c2ff;font:600 11px Inter,sans-serif}</style></defs>${S}</svg>`;
+    $('#cv').innerHTML=SVG;zoom(0);
+  }catch(e){$('#err').textContent='Не вдалося розібрати код: '+e.message}
+}
+function zoom(d){Z=Math.min(2.5,Math.max(.3,Z+d));const s=$('#cv svg');if(s){s.setAttribute('width',SW*Z);s.setAttribute('height',SH*Z)}}
+$('#zi').onclick=()=>zoom(.15);$('#zo').onclick=()=>zoom(-.15);
+$('#go').onclick=build;
+let tm;$('#code').oninput=()=>{clearTimeout(tm);tm=setTimeout(()=>{build();try{localStorage.setItem('ff',$('#code').value)}catch(e){}},350)};
+$('#ex').onchange=e=>{$('#code').value=EX[e.target.value];build()};
+let init=EX[0];try{init=localStorage.getItem('ff')||init}catch(e){}
+$('#code').value=init;build();
+
+// ---------- save ----------
+async function save(name,data,msgEl){
+  try{const u=URL.createObjectURL(data instanceof Blob?data:new Blob([data])),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);msgEl.textContent=''}catch(e){msgEl.textContent='Не вдалося зберегти'}
+}
+$('#svgd').onclick=()=>SVG&&save('flowchart.svg',new Blob([SVG],{type:'image/svg+xml'}),$('#err'));
+$('#pngd').onclick=()=>{if(!SVG)return;const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=2;c.width=SW*k;c.height=SH*k;const x=c.getContext('2d');x.fillStyle='#0b0a1a';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>save('flowchart.png',b,$('#err')),'image/png')};im.onerror=()=>$('#err').textContent='PNG не вдалося створити, спробуй SVG';im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(SVG)};
+
+// ---------- converter ----------
+let F=null,RES=null;
+const drop=$('#drop'),fi=$('#file');
+drop.onclick=()=>fi.click();fi.onchange=()=>fi.files[0]&&pick(fi.files[0]);
+['dragover','dragenter'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('hot')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('hot')}));
+drop.addEventListener('drop',ev=>ev.dataTransfer.files[0]&&pick(ev.dataTransfer.files[0]));
+function pick(f){
+  F=f;RES=null;$('#cp').classList.remove('hide');$('#out').classList.add('hide');$('#cerr').textContent='';
+  $('#fn').textContent=f.name;$('#fi').textContent=(f.size/1024).toFixed(1)+' КБ';
+  const n=f.name.toLowerCase(),o=[];
+  if(f.type.startsWith('image/')||n.endsWith('.svg'))o.push('png','jpg','webp');
+  if(n.endsWith('.json'))o.push('csv');if(n.endsWith('.csv'))o.push('json');
+  o.push('base64');
+  $('#to').innerHTML=o.map(x=>`<option value="${x}">${x.toUpperCase()}</option>`).join('');
+}
+function parseCSV(t){const r=[];let row=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}
+  else if(ch==='"')q=true;else if(ch===','){row.push(c);c=''}
+  else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;row.push(c);c='';r.push(row);row=[]}else c+=ch}
+  if(c||row.length){row.push(c);r.push(row)}return r.filter(x=>x.some(v=>v!==''))}
+$('#cb').onclick=async()=>{
+  const to=$('#to').value,base=F.name.replace(/\.[^.]+$/,''),e=$('#cerr');e.textContent='';
+  try{
+    let blob,name=base+'.'+(to==='base64'?'txt':to);
+    if(['png','jpg','webp'].includes(to)){
+      const url=URL.createObjectURL(F),im=new Image();
+      await new Promise((ok,no)=>{im.onload=ok;im.onerror=()=>no(new Error('не вдалося прочитати зображення'));im.src=url});
+      const c=document.createElement('canvas');c.width=im.naturalWidth||1024;c.height=im.naturalHeight||1024;
+      const x=c.getContext('2d');if(to==='jpg'){x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height)}
+      x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
+      const mime={png:'image/png',jpg:'image/jpeg',webp:'image/webp'}[to];
+      blob=await new Promise(r=>c.toBlob(r,mime,.92));if(!blob)throw new Error('формат не підтримується браузером');
+    }else if(to==='csv'){
+      let j=JSON.parse(await F.text());if(!Array.isArray(j))j=[j];
+      const k=[...new Set(j.flatMap(o=>Object.keys(o)))],q=v=>{v=v==null?'':typeof v==='object'?JSON.stringify(v):String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+      blob=new Blob([[k.join(','),...j.map(o=>k.map(h=>q(o[h])).join(','))].join('\n')],{type:'text/csv'});
+    }else if(to==='json'){
+      const r=parseCSV(await F.text()),h=r.shift();
+      blob=new Blob([JSON.stringify(r.map(a=>Object.fromEntries(h.map((k,i)=>[k,a[i]??'']))),null,2)],{type:'application/json'});
+    }else{
+      const d=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=no;fr.readAsDataURL(F)});
+      blob=new Blob([d.split(',')[1]],{type:'text/plain'});
+    }
+    RES={blob,name};$('#out').classList.remove('hide');$('#so').textContent=name+' · '+(blob.size/1024).toFixed(1)+' КБ';
+    const pv=$('#pv');if(blob.type.startsWith('image/')){pv.src=URL.createObjectURL(blob);pv.classList.remove('hide')}else pv.classList.add('hide');
+  }catch(err){e.textContent='Помилка: '+err.message}
+};
+$('#sv').onclick=()=>RES&&save(RES.name,RES.blob,$('#cerr'));
+</script>
+</body>
+</html>
